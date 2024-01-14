@@ -5,8 +5,6 @@ import (
 )
 
 func main() {
-	rabbit := pkg.NewRabbitMQ()
-	rabbit.Dial()
-	rabbit.ReceiveMessages("rpc_queue")
+	pkg.ListenToQueue("rpc_queue")
 
 }
