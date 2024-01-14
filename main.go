@@ -1,7 +1,12 @@
 package main
 
-import "github.com/skywalkeretw/master-container-builder/pkg"
+import (
+	"github.com/skywalkeretw/master-container-builder/pkg"
+)
 
 func main() {
-	pkg.NewPodmanImage()
+	rabbit := pkg.NewRabbitMQ()
+	rabbit.Dial()
+	rabbit.ReceiveMessages("rpc_queue")
+
 }

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: podman
+  namespace: default
+  labels:
+    app: podman
+
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: podman
+  template:
+    metadata:
+      labels:
+        app: podman
+    spec:
+      containers:
+      - name: podman
+        image: podman:latest
+        imagePullPolicy: Never
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "2048Mi"
+            cpu: "1000m"
+        securityContext:
+          privileged: true
+        env:
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hello-world-default-user
+              key: username
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hello-world-default-user
+              key: password
+        - name: RABBITMQ_HOST
+          valueFrom:
+            secretKeyRef:
+              name: hello-world-default-user
+              key: host
+        - name: RABBITMQ_PORT
+          valueFrom:
+            secretKeyRef:
+              name: hello-world-default-user
+              key: port
