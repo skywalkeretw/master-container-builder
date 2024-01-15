@@ -17,7 +17,7 @@ RUN go test -v ./...
 FROM quay.io/podman/stable
 
 COPY deployment/registries.conf /etc/containers/registries.conf
-COPY dockerfiles /dockerfiles
+COPY templates /templates
 
 COPY --from=build-stage /app/builder /bin/builder
 # COPY --from=build-stage /api /api

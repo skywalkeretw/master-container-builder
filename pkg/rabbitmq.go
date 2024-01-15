@@ -97,7 +97,7 @@ func ListenToQueue(queue string) {
 				log.Panicf("%s: %s", "Failed to unmarshal Body", err)
 			}
 
-			newImage := NewPodmanImage(funcData.Name, funcData.Language)
+			newImage := NewPodmanImage(funcData)
 			newImage.build()
 			newImage.push()
 			newImage.remove()

@@ -3,39 +3,37 @@ package pkg
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 type Podman struct {
-	Name       string
-	Dir        string
-	DockerFile string
+	Name string
+	Dir  string
 }
 
-func NewPodmanImage(name, language string) Podman {
-	var dockerfile string
-	switch language {
-	case "python":
-		dockerfile = "Dockerfile.python"
-	case "javascript":
-		dockerfile = "Dockerfile.node"
-	case "golang":
-		dockerfile = "Dockerfile.golang"
-	}
-	fmt.Println("dockerfile: ", dockerfile)
+func NewPodmanImage(funcData FuncData) Podman {
+
 	dir, err := GenerateTempFolder()
 	if err != nil {
 		log.Panicf("%s: %v", "Failed to create Temp dir", err)
 	}
-	fmt.Println("dockerfilepath: ", "/dockerfiles/"+dockerfile)
-	fmt.Println("tempdir: ", dir)
-	err = CopyFile("/dockerfiles/"+dockerfile, dir)
+	log.Println("Context Dir", dir)
+
+	templateDir := filepath.Join("templates", funcData.Language)
+	err = CopyFolder(templateDir, dir)
+	if err != nil {
+		fmt.Println("Error copying dockerfile:", err)
+	}
+	err = writeFuctionToFile(funcData, dir)
 	if err != nil {
 		fmt.Println("Error copying dockerfile:", err)
 	}
 	p := Podman{
-		Name:       name,
-		Dir:        dir,
-		DockerFile: dockerfile,
+		Name: funcData.Name,
+		Dir:  dir,
 	}
 	return p
 }
@@ -43,13 +41,14 @@ func NewPodmanImage(name, language string) Podman {
 func (p Podman) build() error {
 	fmt.Println("podman build")
 	// Replace this command with your actual Podman build command
-	// cmd := exec.Command("podman", "build", "-f", p.DockerFile, "-t", p.Name, ".")
-	// cmd.Dir = p.Dir
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
+	lowerName := strings.ToLower(p.Name)
+	cmd := exec.Command("podman", "build", "-t", lowerName, p.Dir)
+	cmd.Dir = p.Dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	// return cmd.Run()
-	return nil
+	return cmd.Run()
+
 }
 
 func (p Podman) push() error {
