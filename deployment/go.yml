@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lol
+spec:
+  containers:
+  - name: lol
+    image: registry:5000/nginx:latest
+    command: ["sleep", "infinity"]
+    env:
+    - name: RABBITMQ_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: hello-world-default-user
+          key: username
+    - name: RABBITMQ_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: hello-world-default-user
+          key: password
+    - name: RABBITMQ_HOST
+      valueFrom:
+        secretKeyRef:
+          name: hello-world-default-user
+          key: host
+    - name: RABBITMQ_PORT
+      valueFrom:
+        secretKeyRef:
+          name: hello-world-default-user
+          key: port    
