@@ -11,9 +11,11 @@ import (
 )
 
 type FuncData struct {
-	Name     string
-	Code     string
-	Language string
+	Name         string
+	Code         string
+	Language     string
+	OpenAPISpec  string
+	AsyncAPISpec string
 }
 
 type RabbitMQData struct {
@@ -21,6 +23,10 @@ type RabbitMQData struct {
 	Password string `json:"password"`
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
+}
+
+type ReturnInfo struct {
+	ImageName string `json:"imagename"`
 }
 
 func newRabbitMQ() RabbitMQData {
@@ -87,7 +93,7 @@ func ListenToQueue(queue string) {
 	var forever chan struct{}
 
 	go func() {
-		_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		for d := range msgs {
 			fmt.Println(string(d.Body))
@@ -98,31 +104,43 @@ func ListenToQueue(queue string) {
 			}
 
 			newImage := NewPodmanImage(funcData)
-			newImage.build()
-			newImage.push()
-			newImage.remove()
+			err = newImage.build()
+			if err != nil {
+				fmt.Printf("Failed to build %v", err)
+			}
+			imageName, err := newImage.push()
+			if err != nil {
+				fmt.Printf("Failed to push %v", err)
+			}
+			err = newImage.remove()
+			if err != nil {
+				fmt.Printf("Failed to clean up %v", err)
+			}
 
+			data := ReturnInfo{
+				ImageName: imageName,
+			}
 			// info about built container
-			// jsonData, err := json.Marshal(data)
-			// if err != nil {
-			// 	log.Fatalf("Failed to marshal JSON: %v", err)
-			// }
+			jsonData, err := json.Marshal(data)
+			if err != nil {
+				log.Fatalf("Failed to marshal JSON: %v", err)
+			}
 
-			// err = ch.PublishWithContext(ctx,
-			// 	"",        // exchange
-			// 	d.ReplyTo, // routing key
-			// 	false,     // mandatory
-			// 	false,     // immediate
-			// 	amqp.Publishing{
-			// 		ContentType:   "application/json",
-			// 		CorrelationId: d.CorrelationId,
-			// 		Body:          jsonData,
-			// 	})
+			err = ch.PublishWithContext(ctx,
+				"",        // exchange
+				d.ReplyTo, // routing key
+				false,     // mandatory
+				false,     // immediate
+				amqp.Publishing{
+					ContentType:   "application/json",
+					CorrelationId: d.CorrelationId,
+					Body:          jsonData,
+				})
 
-			// if err != nil {
-			// 	log.Fatalf("Failed to publish a message: %v", err)
-			// }
-			d.Ack(false)
+			if err != nil {
+				log.Fatalf("Failed to publish a message: %v", err)
+			}
+			d.Ack(true)
 		}
 	}()
 

@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 
+from function import myFunc
+
 app = Flask(__name__)
 
 def run_server():
@@ -9,6 +11,7 @@ def run_server():
 def handler1():
 
     input=request.json
+    myFunc()
     response = {{FUNCTION_NAME}}
     return jsonify(response)
 
