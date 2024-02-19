@@ -45,14 +45,15 @@ func NewPodmanImage(funcData FuncData) Podman {
 	dockerhub_password := GetEnvSting("DOCKERHUB_PASSWORD", "password")
 	re := regexp.MustCompile(`[\s\n\r\t]+`)
 	cleanedUsername := re.ReplaceAllString(dockerhub_username, "")
-	iamgeName := fmt.Sprintf("%s/master-imgs:%s", cleanedUsername, lowerName)
+	cleanedPassword := re.ReplaceAllString(dockerhub_password, "")
+	iamgeName := fmt.Sprintf("docker.io/%s/master-imgs:%s", cleanedUsername, lowerName)
 	fmt.Println("imagenaem", iamgeName)
 	p := Podman{
 		Name:              funcData.Name,
 		ImgName:           iamgeName,
 		Dir:               dir,
 		DockerhubUsername: cleanedUsername,
-		DockerhubPassword: dockerhub_password,
+		DockerhubPassword: cleanedPassword,
 	}
 	fmt.Println("podman data", p)
 	return p
@@ -73,7 +74,7 @@ func (p Podman) build() error {
 func (p Podman) login() error {
 
 	fmt.Println("login to dockerhub")
-
+	// dockerhublogin := fmt.Sprintf("podman login --username %s --password %s docker.io", p.DockerhubUsername, p.DockerhubPassword)
 	cmd := exec.Command("podman", "login", "--username", p.DockerhubUsername, "--password", p.DockerhubPassword, "docker.io")
 	cmd.Dir = p.Dir
 	cmd.Stdout = os.Stdout
@@ -101,7 +102,7 @@ func (p Podman) push() (string, error) {
 func (p Podman) remove() error {
 	fmt.Println("podman remove")
 
-	cmd := exec.Command("podman", "image", "remove", p.ImgName)
+	cmd := exec.Command("podman", "rmi", p.ImgName)
 	cmd.Dir = p.Dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

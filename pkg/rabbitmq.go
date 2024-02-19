@@ -111,11 +111,11 @@ func ListenToQueue(queue string) {
 			}
 			imageName, err := newImage.push()
 			if err != nil {
-				fmt.Printf("Failed to push %v", err)
+				fmt.Printf("Failed to push %v\n", err)
 			}
 			err = newImage.remove()
 			if err != nil {
-				fmt.Printf("Failed to clean up %v", err)
+				fmt.Printf("Failed to clean up %v\n", err)
 			}
 
 			data := ReturnInfo{
