@@ -11,11 +11,12 @@ import (
 )
 
 type FuncData struct {
-	Name         string
-	Code         string
-	Language     string
-	OpenAPISpec  string
-	AsyncAPISpec string
+	Name         string `json:"name" binding:"required"`
+	Code         string `json:"sourcecode" binding:"required"`
+	FuncInput    string `json:"fucinput" binding:"required"`
+	Language     string `json:"language" binding:"required"`
+	OpenAPISpec  string `json:"openapijson"`
+	AsyncAPISpec string `json:"asyncapijson"`
 }
 
 type RabbitMQData struct {
@@ -58,10 +59,10 @@ func ListenToQueue(queue string) {
 
 	q, err := ch.QueueDeclare(
 		queue, // name
-		false, // durable
+		true,  // durable
 		false, // delete when unused
 		false, // exclusive
-		false, // no-wait
+		false, // noWait
 		nil,   // arguments
 	)
 	if err != nil {
@@ -80,7 +81,7 @@ func ListenToQueue(queue string) {
 	msgs, err := ch.Consume(
 		q.Name, // queue
 		"",     // consumer
-		false,  // auto-ack
+		true,   // auto-ack
 		false,  // exclusive
 		false,  // no-local
 		false,  // no-wait
@@ -102,7 +103,7 @@ func ListenToQueue(queue string) {
 			if err != nil {
 				log.Panicf("%s: %s", "Failed to unmarshal Body", err)
 			}
-
+			fmt.Println(funcData)
 			newImage := NewPodmanImage(funcData)
 			err = newImage.build()
 			if err != nil {

@@ -9,11 +9,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func test(nm string) {
+	fmt.Println(nm)
+}
 func HandleHttp(wg *sync.WaitGroup) {
 	defer wg.Done()
 	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		value := {{FUNCTION_NAME}}
+	r.POST("/", func(c *gin.Context) {
+		var rb map[string]interface{}
+
+		// Bind JSON body to a map
+		if err := c.BindJSON(&rb); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+		}
+
+		value := {{FUNCTION_CALL}}
 		//call function
 		if reflect.TypeOf(value).Kind() == reflect.Struct {
 			c.JSON(http.StatusOK, value)

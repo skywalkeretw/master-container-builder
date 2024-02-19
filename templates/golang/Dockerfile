@@ -9,7 +9,7 @@ RUN go mod download && go mod tidy
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+RUN go build -o function .
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -19,8 +19,8 @@ COPY openapi.json asyncapi.json ./
 
 WORKDIR /root/
 
-COPY --from=builder /app/main .
+COPY --from=builder /app/function .
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["./function"]

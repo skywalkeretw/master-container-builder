@@ -1,21 +1,25 @@
 import pika
-
+import json
+import os
 
 def listen_to_rabbitmq():
 
+    host = os.environ.get('RABBITMQ_HOST', 'localhost')
+    port = int(os.environ.get('RABBITMQ_PORT', '5672'))
+    username = os.environ.get('RABBITMQ_USERNAME', 'guest')
+    password = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 
     connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host="localhost"),
+        pika.ConnectionParameters(host=host, port=port, credentials=pika.PlainCredentials(username, password)),
     )
     channel = connection.channel()
-
-    channel.queue_declare(queue="rpc_queue")
+    queue = os.environ.get("QUEUE", "default")
+    channel.queue_declare(queue=queue)
 
     def on_request(ch, method, props, body):
-        n = int(body)
+        rb = json.loads(body.decode('utf-8'))
 
-        print(f" [.] fib({n})")
-        response = {{FUNCTION_NAME}}
+        response = {{FUNCTION_CALL}}
 
         ch.basic_publish(
             exchange="",

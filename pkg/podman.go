@@ -6,13 +6,16 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
 type Podman struct {
-	Name    string
-	ImgName string
-	Dir     string
+	Name              string
+	ImgName           string
+	Dir               string
+	DockerhubUsername string
+	DockerhubPassword string
 }
 
 func NewPodmanImage(funcData FuncData) Podman {
@@ -39,14 +42,19 @@ func NewPodmanImage(funcData FuncData) Podman {
 
 	lowerName := strings.ToLower(funcData.Name)
 	dockerhub_username := GetEnvSting("DOCKERHUB_USERNAME", "username")
-
-	iamgeName := fmt.Sprintf("%s/master-imgs:%s", dockerhub_username, lowerName)
-
+	dockerhub_password := GetEnvSting("DOCKERHUB_PASSWORD", "password")
+	re := regexp.MustCompile(`[\s\n\r\t]+`)
+	cleanedUsername := re.ReplaceAllString(dockerhub_username, "")
+	iamgeName := fmt.Sprintf("%s/master-imgs:%s", cleanedUsername, lowerName)
+	fmt.Println("imagenaem", iamgeName)
 	p := Podman{
-		Name:    funcData.Name,
-		ImgName: iamgeName,
-		Dir:     dir,
+		Name:              funcData.Name,
+		ImgName:           iamgeName,
+		Dir:               dir,
+		DockerhubUsername: cleanedUsername,
+		DockerhubPassword: dockerhub_password,
 	}
+	fmt.Println("podman data", p)
 	return p
 }
 
@@ -65,9 +73,8 @@ func (p Podman) build() error {
 func (p Podman) login() error {
 
 	fmt.Println("login to dockerhub")
-	username := GetEnvSting("DOCKERHUB_USERNAME", "username")
-	password := GetEnvSting("DOCKERHUB_PASSWORD", "password")
-	cmd := exec.Command("podman", "login", "-u", username, "-p", password)
+
+	cmd := exec.Command("podman", "login", "--username", p.DockerhubUsername, "--password", p.DockerhubPassword, "docker.io")
 	cmd.Dir = p.Dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

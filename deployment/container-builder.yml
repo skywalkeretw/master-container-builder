@@ -2,25 +2,25 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: podman
+  name: container-builder
   namespace: default
   labels:
-    app: podman
+    app: container-builder
 
 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: podman
+      app: container-builder
   template:
     metadata:
       labels:
-        app: podman
+        app: container-builder
     spec:
       containers:
-      - name: podman
-        image: podman:latest
+      - name: container-builder
+        image: container-builder:v1
         imagePullPolicy: Never
         resources:
           requests:
@@ -54,9 +54,11 @@ spec:
               key: port
         - name: DOCKERHUB_USERNAME
           valueFrom:
-            name: podman
-            key: username
+            secretKeyRef:
+              name: podman
+              key: username
         - name: DOCKERHUB_PASSWORD
           valueFrom:
-            name: podman
-            key: password
+            secretKeyRef:
+              name: podman
+              key: password

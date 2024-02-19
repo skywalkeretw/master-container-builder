@@ -139,9 +139,10 @@ func CopyFolder(src, dst string) error {
 	})
 }
 
-func writeStringToFile(content, filePath string) error {
+func writeStringToFile(content []byte, filePath string) error {
 	// Write the string content to the file
-	err := os.WriteFile(filePath, []byte(content), 0644)
+	fmt.Println(string(content))
+	err := os.WriteFile(filePath, content, 0777)
 	if err != nil {
 		return err
 	}
