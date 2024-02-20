@@ -15,6 +15,7 @@ RUN go test -v ./...
 
 
 FROM quay.io/podman/stable
+ENV PATH="${PATH}:/usr/bin/"
 
 COPY deployment/registries.conf /etc/containers/registries.conf
 COPY templates /templates

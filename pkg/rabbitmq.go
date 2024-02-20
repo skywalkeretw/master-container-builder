@@ -11,9 +11,12 @@ import (
 )
 
 type FuncData struct {
-	Name     string
-	Code     string
-	Language string
+	Name         string `json:"name" binding:"required"`
+	Code         string `json:"sourcecode" binding:"required"`
+	FuncInput    string `json:"fucinput" binding:"required"`
+	Language     string `json:"language" binding:"required"`
+	OpenAPISpec  string `json:"openapijson"`
+	AsyncAPISpec string `json:"asyncapijson"`
 }
 
 type RabbitMQData struct {
@@ -21,6 +24,10 @@ type RabbitMQData struct {
 	Password string `json:"password"`
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
+}
+
+type ReturnInfo struct {
+	ImageName string `json:"imagename"`
 }
 
 func newRabbitMQ() RabbitMQData {
@@ -52,10 +59,10 @@ func ListenToQueue(queue string) {
 
 	q, err := ch.QueueDeclare(
 		queue, // name
-		false, // durable
+		true,  // durable
 		false, // delete when unused
 		false, // exclusive
-		false, // no-wait
+		false, // noWait
 		nil,   // arguments
 	)
 	if err != nil {
@@ -74,7 +81,7 @@ func ListenToQueue(queue string) {
 	msgs, err := ch.Consume(
 		q.Name, // queue
 		"",     // consumer
-		false,  // auto-ack
+		true,   // auto-ack
 		false,  // exclusive
 		false,  // no-local
 		false,  // no-wait
@@ -87,7 +94,7 @@ func ListenToQueue(queue string) {
 	var forever chan struct{}
 
 	go func() {
-		_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cancel()
 		for d := range msgs {
 			fmt.Println(string(d.Body))
@@ -96,33 +103,47 @@ func ListenToQueue(queue string) {
 			if err != nil {
 				log.Panicf("%s: %s", "Failed to unmarshal Body", err)
 			}
-
+			fmt.Println(funcData)
 			newImage := NewPodmanImage(funcData)
-			newImage.build()
-			newImage.push()
-			newImage.remove()
+			err = newImage.build()
+			if err != nil {
+				fmt.Printf("Failed to build %v", err)
+			}
+			imageName, err := newImage.push()
+			if err != nil {
+				fmt.Printf("Failed to push %v\n", err)
+			}
+			err = newImage.remove()
+			if err != nil {
+				fmt.Printf("Failed to clean up %v\n", err)
+			}
 
+			data := ReturnInfo{
+				ImageName: imageName,
+			}
 			// info about built container
-			// jsonData, err := json.Marshal(data)
-			// if err != nil {
-			// 	log.Fatalf("Failed to marshal JSON: %v", err)
-			// }
+			jsonData, err := json.Marshal(data)
+			if err != nil {
+				log.Fatalf("Failed to marshal JSON: %v", err)
+			}
+			fmt.Println("Publishing message to", d.ReplyTo, d.RoutingKey)
 
-			// err = ch.PublishWithContext(ctx,
-			// 	"",        // exchange
-			// 	d.ReplyTo, // routing key
-			// 	false,     // mandatory
-			// 	false,     // immediate
-			// 	amqp.Publishing{
-			// 		ContentType:   "application/json",
-			// 		CorrelationId: d.CorrelationId,
-			// 		Body:          jsonData,
-			// 	})
+			err = ch.PublishWithContext(ctx,
+				"",        // exchange
+				d.ReplyTo, // routing key
+				false,     // mandatory
+				false,     // immediate
+				amqp.Publishing{
+					ContentType:   "application/json",
+					CorrelationId: d.CorrelationId,
+					Body:          jsonData,
+				})
 
-			// if err != nil {
-			// 	log.Fatalf("Failed to publish a message: %v", err)
-			// }
-			d.Ack(false)
+			if err != nil {
+				log.Fatalf("Failed to publish a message: %v", err)
+			}
+			d.Ack(true)
+			fmt.Println(string(d.Body), "processed")
 		}
 	}()
 

@@ -1,40 +1,28 @@
-#!/usr/bin/env python
-import pika
+import threading
+import http_server as httpServer
+import messaging as messaging
+import os
 
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="localhost"),
-)
-channel = connection.channel()
+def getenv_bool(key, default_value=False):
+    env_value = os.getenv(key)
+    
+    if env_value is None:
+        return default_value
+    
+    try:
+        # Attempt to parse the environment variable as a boolean
+        return bool(int(env_value))
+    except ValueError:
+        # If parsing fails, return the default value
+        return default_value
 
-channel.queue_declare(queue="rpc_queue")
+if __name__ == '__main__':
+    # Run handler1 on port 8080
+    if getenv_bool("HTTP", True):
+        thread1 = threading.Thread(target=httpServer.run_server)
+        thread1.start()
 
-
-def fib(n):
-    if n == 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
-
-
-def on_request(ch, method, props, body):
-    n = int(body)
-
-    print(f" [.] fib({n})")
-    response = fib(n)
-
-    ch.basic_publish(
-        exchange="",
-        routing_key=props.reply_to,
-        properties=pika.BasicProperties(correlation_id=props.correlation_id),
-        body=str(response),
-    )
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
-
-channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue="rpc_queue", on_message_callback=on_request)
-
-print(" [x] Awaiting RPC requests")
-channel.start_consuming()
+    # Run handler2 on port 8081
+    if getenv_bool("MESSAGING", False):
+        thread2 = threading.Thread(target=messaging.listen_to_rabbitmq)
+        thread2.start()

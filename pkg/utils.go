@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -138,9 +139,10 @@ func CopyFolder(src, dst string) error {
 	})
 }
 
-func writeStringToFile(content, filePath string) error {
+func writeStringToFile(content []byte, filePath string) error {
 	// Write the string content to the file
-	err := os.WriteFile(filePath, []byte(content), 0644)
+	fmt.Println(string(content))
+	err := os.WriteFile(filePath, content, 0777)
 	if err != nil {
 		return err
 	}
@@ -154,4 +156,24 @@ func getCurrentDir() (string, error) {
 		return "", err
 	}
 	return dir, nil
+}
+
+// ReplacePlaceholderInFile replaces a placeholder in a file with the specified content.
+func ReplacePlaceholderInFile(filePath, placeholder, replacement string) error {
+	// Read the content of the file
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	// Replace the placeholder with the new content
+	newContent := strings.Replace(string(content), placeholder, replacement, -1)
+
+	// Write the modified content back to the file
+	err = os.WriteFile(filePath, []byte(newContent), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
