@@ -94,7 +94,7 @@ func ListenToQueue(queue string) {
 	var forever chan struct{}
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cancel()
 		for d := range msgs {
 			fmt.Println(string(d.Body))
@@ -126,6 +126,7 @@ func ListenToQueue(queue string) {
 			if err != nil {
 				log.Fatalf("Failed to marshal JSON: %v", err)
 			}
+			fmt.Println("Publishing message to", d.ReplyTo, d.RoutingKey)
 
 			err = ch.PublishWithContext(ctx,
 				"",        // exchange
@@ -142,6 +143,7 @@ func ListenToQueue(queue string) {
 				log.Fatalf("Failed to publish a message: %v", err)
 			}
 			d.Ack(true)
+			fmt.Println(string(d.Body), "processed")
 		}
 	}()
 

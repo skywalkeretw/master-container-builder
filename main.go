@@ -8,7 +8,7 @@ import (
 
 func main() {
 	log.Println("Start")
-	pkg.ListenToQueue("imageBuilder")
+	pkg.ListenToQueue("imagebuilder")
 	log.Println("Fin")
 
 }
