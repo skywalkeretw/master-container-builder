@@ -3,15 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"reflect"
+	"os"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
-func test(nm string) {
-	fmt.Println(nm)
-}
+
 func HandleHttp(wg *sync.WaitGroup) {
 	defer wg.Done()
 	r := gin.Default()
@@ -32,5 +30,26 @@ func HandleHttp(wg *sync.WaitGroup) {
 		}
 
 	})
+
+	r.GET("/openapi", func(c *gin.Context) {
+		jsonData, err := os.ReadFile("/root/openapi.json")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read JSON file"})
+			return
+		}
+		c.Header("Content-Type", "application/json")
+		c.Data(http.StatusOK, "application/json", jsonData)
+	})
+
+	r.GET("/asyncapi", func(c *gin.Context) {
+		jsonData, err := os.ReadFile("/root/asyncapi.json")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read JSON file"})
+			return
+		}
+		c.Header("Content-Type", "application/json")
+		c.Data(http.StatusOK, "application/json", jsonData)
+	})
+
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

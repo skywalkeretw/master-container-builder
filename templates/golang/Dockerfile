@@ -13,11 +13,12 @@ RUN go build -o function .
 
 # Start a new stage from scratch
 FROM alpine:latest
+
 RUN apk --no-cache add ca-certificates
 
-COPY openapi.json asyncapi.json ./
-
 WORKDIR /root/
+
+COPY openapi.json asyncapi.json ./
 
 COPY --from=builder /app/function .
 
