@@ -18,7 +18,9 @@ func writeFuctionToFile(fd FuncData, dir string) error {
 		replacePlaceholder(filepath.Join(dir, "messaging.js"), "{{FUNCTION_CALL}}", func_call)
 		file = "function.js"
 	case "python":
-		replacePlaceholder(filepath.Join(dir, "http_server.py"), "{{FUNCTION_CALL}}", func_call)
+		replacePlaceholder(filepath.Join(dir, "httpserver.py"), "{{FUNCTION_NAME}}", fd.Name)
+		replacePlaceholder(filepath.Join(dir, "messaging.py"), "{{FUNCTION_NAME}}", fd.Name)
+		replacePlaceholder(filepath.Join(dir, "httpserver.py"), "{{FUNCTION_CALL}}", func_call)
 		replacePlaceholder(filepath.Join(dir, "messaging.py"), "{{FUNCTION_CALL}}", func_call)
 		file = "function.py"
 	case "golang":
