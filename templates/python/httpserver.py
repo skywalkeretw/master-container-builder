@@ -5,12 +5,13 @@ from function import {{FUNCTION_NAME}}
 app = Flask(__name__)
 
 def run_server():
-    app.run(port=8080)
+    app.run(host='0.0.0.0', port=8080)
 
 @app.route('/', methods=['POST'])
 def handle_function():
     if request.is_json:        
         rb=request.json
+        print(rb)
         response = {{FUNCTION_CALL}}
         return jsonify(response)
 
