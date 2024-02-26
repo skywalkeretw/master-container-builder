@@ -59,7 +59,7 @@ func writeSpecToFile(fd FuncData, dir string) error {
 
 	if fd.AsyncAPISpec != "" {
 		filePath := filepath.Join(dir, "asyncapi.json")
-		decodedBytes, err := base64.StdEncoding.DecodeString(fd.OpenAPISpec)
+		decodedBytes, err := base64.StdEncoding.DecodeString(fd.AsyncAPISpec)
 		if err != nil {
 			fmt.Println("Error decoding:", err)
 			return fmt.Errorf("error decodeing %v", err.Error())
