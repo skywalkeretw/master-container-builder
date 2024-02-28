@@ -1,9 +1,9 @@
-FROM python:3.12
+FROM python:3.11
 
 WORKDIR /root/
 
 COPY requirements.txt ./requirements.txt
-COPY main.py function.py ./
+COPY main.py httpserver.py messaging.py function.py ./
 
 COPY openapi.json asyncapi.json ./
 

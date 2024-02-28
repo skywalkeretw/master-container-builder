@@ -1,5 +1,5 @@
 import threading
-import http_server as httpServer
+import httpserver as httpserver 
 import messaging as messaging
 import os
 
@@ -18,9 +18,9 @@ def getenv_bool(key, default_value=False):
 
 if __name__ == '__main__':
     # Run handler1 on port 8080
-    if getenv_bool("HTTP", True):
-        thread1 = threading.Thread(target=httpServer.run_server)
-        thread1.start()
+
+    thread1 = threading.Thread(target=httpserver.run_server)
+    thread1.start()
 
     # Run handler2 on port 8081
     if getenv_bool("MESSAGING", False):

@@ -18,7 +18,9 @@ func writeFuctionToFile(fd FuncData, dir string) error {
 		replacePlaceholder(filepath.Join(dir, "messaging.js"), "{{FUNCTION_CALL}}", func_call)
 		file = "function.js"
 	case "python":
-		replacePlaceholder(filepath.Join(dir, "http_server.py"), "{{FUNCTION_CALL}}", func_call)
+		replacePlaceholder(filepath.Join(dir, "httpserver.py"), "{{FUNCTION_NAME}}", fd.Name)
+		replacePlaceholder(filepath.Join(dir, "messaging.py"), "{{FUNCTION_NAME}}", fd.Name)
+		replacePlaceholder(filepath.Join(dir, "httpserver.py"), "{{FUNCTION_CALL}}", func_call)
 		replacePlaceholder(filepath.Join(dir, "messaging.py"), "{{FUNCTION_CALL}}", func_call)
 		file = "function.py"
 	case "golang":
@@ -57,7 +59,7 @@ func writeSpecToFile(fd FuncData, dir string) error {
 
 	if fd.AsyncAPISpec != "" {
 		filePath := filepath.Join(dir, "asyncapi.json")
-		decodedBytes, err := base64.StdEncoding.DecodeString(fd.OpenAPISpec)
+		decodedBytes, err := base64.StdEncoding.DecodeString(fd.AsyncAPISpec)
 		if err != nil {
 			fmt.Println("Error decoding:", err)
 			return fmt.Errorf("error decodeing %v", err.Error())
