@@ -18,11 +18,9 @@ def getenv_bool(key, default_value=False):
 
 if __name__ == '__main__':
     # Run handler1 on port 8080
-
+    
     thread1 = threading.Thread(target=httpserver.run_server)
     thread1.start()
 
-    # Run handler2 on port 8081
-    if getenv_bool("MESSAGING", False):
-        thread2 = threading.Thread(target=messaging.listen_to_rabbitmq)
-        thread2.start()
+    thread2 = threading.Thread(target=messaging.listen_to_rabbitmq)
+    thread2.start()
